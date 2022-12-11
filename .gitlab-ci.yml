@@ -1,0 +1,39 @@
+stages:
+  - sonar
+  - build
+  - deploy
+  - staging
+
+sonarscan:
+  extends: .sonarscan
+
+build:
+  extends: .build
+
+k8s-deploy:develop:
+  extends: .deploy
+  variables:
+    HELM_OPTS: "--set ingress.host=laitscollect-rf.${DEVELOP_DOMAIN}"
+
+k8s-deploy:staging:
+  extends: .staging-deploy
+  variables:
+    HELM_OPTS: "--set ingress.host=laitscollect-rf.${STAGING_DOMAIN}"
+
+
+include:
+  - project: 'library/stages'
+    ref: master
+    file: 'gitlab/sonar/sonarscan_hidden.yaml'
+  - project: 'library/stages'
+    ref: master
+    file: 'gitlab/helm/deploy_hidden.yaml'
+  - project: 'library/stages'
+    ref: master
+    file: 'gitlab/kaniko/build2.yaml'
+  - project: 'library/stages'
+    ref: master
+    file: 'gitlab/helm/staging_hidden.yaml'
+  - project: 'library/stages'
+    ref: master
+    file: '/gitlab/footer.yaml'
